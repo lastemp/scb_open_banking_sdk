@@ -27,7 +27,7 @@ use base64::{
 use models::accounts_inquiry::accounts_inquiry::{
     AccountDetailsAndBalanceAsOfInputDetails, AccountDetailsAndBalanceByCurrencyInputDetails,
     AccountDetailsAndBalanceInputDetails, AccountDetailsAndBalanceQueryInputDetails,
-    AccountsInquiryResponseData,
+    AccountDetailsAndBalanceResponseData, AccountsInquiryResponseData,
 };
 
 const AUTHORISATION_BEARER: &str = "Bearer";
@@ -190,7 +190,7 @@ impl ScbGateway {
     pub async fn enquire_account_details_and_balance_as_of(
         &self,
         account_details: AccountDetailsAndBalanceAsOfInputDetails,
-    ) -> std::result::Result<AccountsInquiryResponseData, String> {
+    ) -> std::result::Result<AccountDetailsAndBalanceResponseData, String> {
         let _output = self.get_auth_token();
 
         let _result = _output.await;
@@ -228,7 +228,7 @@ impl ScbGateway {
     pub async fn enquire_account_details_and_balance(
         &self,
         account_details: AccountDetailsAndBalanceInputDetails,
-    ) -> std::result::Result<AccountsInquiryResponseData, String> {
+    ) -> std::result::Result<AccountDetailsAndBalanceResponseData, String> {
         let _output = self.get_auth_token();
 
         let _result = _output.await;
@@ -264,7 +264,7 @@ impl ScbGateway {
     pub async fn enquire_account_details_and_balance_by_currency(
         &self,
         account_details: AccountDetailsAndBalanceByCurrencyInputDetails,
-    ) -> std::result::Result<AccountsInquiryResponseData, String> {
+    ) -> std::result::Result<AccountDetailsAndBalanceResponseData, String> {
         let _output = self.get_auth_token();
 
         let _result = _output.await;
@@ -304,7 +304,7 @@ impl ScbGateway {
     pub async fn enquire_account_details_and_balance_query(
         &self,
         account_details: AccountDetailsAndBalanceQueryInputDetails,
-    ) -> std::result::Result<AccountsInquiryResponseData, String> {
+    ) -> std::result::Result<AccountDetailsAndBalanceResponseData, String> {
         let _output = self.get_auth_token();
 
         let _result = _output.await;

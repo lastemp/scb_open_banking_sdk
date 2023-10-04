@@ -294,3 +294,39 @@ pub struct AccountDetailsData {
 pub struct AccountsInquiryResponseData {
     pub accounts: Vec<AccountDetailsData>,
 }
+
+//
+#[allow(non_snake_case)]
+#[derive(Deserialize, Debug)]
+pub struct BalanceDetailsData {
+    pub currency: Option<String>,
+    pub asOf: Option<String>,
+    pub amount: Option<f32>,
+    pub opening: Option<f32>,
+    pub closing: Option<f32>,
+    pub openingLedger: Option<f32>,
+    pub closingLedger: Option<f32>,
+}
+
+#[allow(non_snake_case)]
+#[derive(Deserialize, Debug)]
+pub struct AccountDetailsAndBalanceData {
+    pub id: Option<String>,
+    pub label: Option<String>,
+    pub number: Option<String>,
+    pub owners: Vec<OwnerDetailsData>,
+    pub r#type: Option<String>,
+    pub balance: BalanceDetailsData,
+    pub iban: Option<String>,
+    pub swiftBic: Option<String>,
+    pub bankId: Option<String>,
+    pub currency: Option<String>,
+    pub groupId: Option<String>,
+    pub country: Option<String>,
+}
+
+#[allow(non_snake_case)]
+#[derive(Deserialize, Debug)]
+pub struct AccountDetailsAndBalanceResponseData {
+    pub accounts: Vec<AccountDetailsAndBalanceData>,
+}

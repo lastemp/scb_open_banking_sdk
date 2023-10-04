@@ -2,7 +2,7 @@ use reqwest::StatusCode;
 
 use crate::{
     models::accounts_inquiry::accounts_inquiry::{
-        AccountDetailsAndBalanceQueryInputDetails, AccountsInquiryResponseData,
+        AccountDetailsAndBalanceQueryInputDetails, AccountDetailsAndBalanceResponseData,
     },
     util::util::{build_account_details_and_balance_query_data, build_headers_data},
 };
@@ -11,7 +11,7 @@ pub async fn enquire(
     account_details: AccountDetailsAndBalanceQueryInputDetails,
     access_token: String,
     api_url: String,
-) -> std::result::Result<AccountsInquiryResponseData, String> {
+) -> std::result::Result<AccountDetailsAndBalanceResponseData, String> {
     let as_of = account_details.get_as_of();
     let account_numbers = account_details.get_account_number();
 
@@ -34,7 +34,10 @@ pub async fn enquire(
         Ok(response) => match response.status() {
             StatusCode::OK => {
                 // 200
-                match response.json::<AccountsInquiryResponseData>().await {
+                match response
+                    .json::<AccountDetailsAndBalanceResponseData>()
+                    .await
+                {
                     Ok(account_response_data) => {
                         // Handle success case
 
