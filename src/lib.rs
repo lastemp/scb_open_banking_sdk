@@ -2,6 +2,11 @@ pub mod models {
     pub mod accounts_inquiry {
         pub mod accounts_inquiry;
     }
+    pub mod corporate_financial_markets {
+        pub mod rate_quotes {
+            pub mod rate_quotes;
+        }
+    }
     pub mod authorization {
         pub mod auth_token;
     }
@@ -16,18 +21,27 @@ mod accounts_inquiry {
     pub mod account_details_and_balance;
     pub mod account_details_and_balance_query;
     pub mod list_of_accounts;
-    //pub mod account_transactions;
-    //pub mod account_validation;
+}
+pub mod corporate_financial_markets {
+    pub mod rate_quotes {
+        pub mod rate_quotes;
+    }
 }
 use base64::{
     alphabet,
     engine::{self, general_purpose},
     Engine as _,
 };
-use models::accounts_inquiry::accounts_inquiry::{
-    AccountDetailsAndBalanceAsOfInputDetails, AccountDetailsAndBalanceByCurrencyInputDetails,
-    AccountDetailsAndBalanceInputDetails, AccountDetailsAndBalanceQueryInputDetails,
-    AccountDetailsAndBalanceResponseData, AccountsInquiryResponseData,
+use models::{
+    accounts_inquiry::accounts_inquiry::{
+        AccountDetailsAndBalanceAsOfInputDetails, AccountDetailsAndBalanceByCurrencyInputDetails,
+        AccountDetailsAndBalanceInputDetails, AccountDetailsAndBalanceQueryInputDetails,
+        AccountDetailsAndBalanceResponseData, AccountsInquiryResponseData,
+    },
+    corporate_financial_markets::rate_quotes::rate_quotes::{
+        QuotesValidationInputDetails, RateQuotesBatchInputDetails,
+        RateQuotesByCurrencyPairInputDetails, RateQuotesResponseData,
+    },
 };
 
 const AUTHORISATION_BEARER: &str = "Bearer";
@@ -46,6 +60,16 @@ const ACCOUNT_DETAILS_AND_BALANCE_URL_SANDBOX: &str =
 const ACCOUNT_DETAILS_AND_BALANCE_URL_PROD: &str =
     "https://api.standardchartered.com/openapi/accounts/v2/";
 
+const RATE_QUOTES_BATCH_URL_SANDBOX: &str =
+    "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/get-quotes/";
+const RATE_QUOTES_BATCH_URL_PROD: &str =
+    "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/get-quotes/";
+
+const RATE_QUOTES_BY_CURRENCY_PAIR_URL_SANDBOX: &str =
+    "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/get-single-quote/";
+const RATE_QUOTES_BY_CURRENCY_PAIR_URL_PROD: &str =
+    "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/get-single-quote/";
+
 #[derive(Debug)]
 pub struct ScbGateway {
     grant_type: String,
@@ -54,6 +78,8 @@ pub struct ScbGateway {
     auth_token_url: String,
     list_of_accounts_url: String,
     account_details_and_balance_url: String,
+    rate_quotes_batch_url: String,
+    rate_quotes_by_currency_pair_url: String,
 }
 
 impl ScbGateway {
@@ -102,6 +128,18 @@ impl ScbGateway {
             ACCOUNT_DETAILS_AND_BALANCE_URL_SANDBOX.to_string()
         };
 
+        let rate_quotes_batch_url = if _env.eq_ignore_ascii_case(&String::from("prod")) {
+            RATE_QUOTES_BATCH_URL_PROD.to_string()
+        } else {
+            RATE_QUOTES_BATCH_URL_SANDBOX.to_string()
+        };
+
+        let rate_quotes_by_currency_pair_url = if _env.eq_ignore_ascii_case(&String::from("prod")) {
+            RATE_QUOTES_BY_CURRENCY_PAIR_URL_PROD.to_string()
+        } else {
+            RATE_QUOTES_BY_CURRENCY_PAIR_URL_SANDBOX.to_string()
+        };
+
         Ok(Self {
             grant_type,
             consumer_key,
@@ -109,6 +147,8 @@ impl ScbGateway {
             auth_token_url,
             list_of_accounts_url,
             account_details_and_balance_url,
+            rate_quotes_batch_url,
+            rate_quotes_by_currency_pair_url,
         })
     }
 
@@ -317,6 +357,122 @@ impl ScbGateway {
 
                 let _result = accounts_inquiry::account_details_and_balance_query::enquire(
                     account_details,
+                    access_token,
+                    api_url.to_string(),
+                )
+                .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn enquire_rate_quotes_batch(
+        &self,
+        account_details: RateQuotesBatchInputDetails,
+    ) -> std::result::Result<RateQuotesResponseData, String> {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let client_id: String = account_details.get_client_id();
+                let rate_category_id: String = account_details.get_rate_category_id();
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.rate_quotes_batch_url;
+                let mut api_url = api_url.to_string();
+                let _a = "/";
+
+                api_url.push_str(&client_id);
+                api_url.push_str(&_a);
+                api_url.push_str(&rate_category_id);
+
+                let _result = corporate_financial_markets::rate_quotes::rate_quotes::enquire(
+                    access_token,
+                    api_url.to_string(),
+                )
+                .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn enquire_rate_quotes_by_currency_pair(
+        &self,
+        account_details: RateQuotesByCurrencyPairInputDetails,
+    ) -> std::result::Result<RateQuotesResponseData, String> {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let client_id: String = account_details.get_client_id();
+                let rate_category_id: String = account_details.get_rate_category_id();
+                let buy_currency: String = account_details.get_buy_currency();
+                let sell_currency: String = account_details.get_sell_currency();
+                let _tenor: u16 = account_details.get_tenor();
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.rate_quotes_by_currency_pair_url;
+                let mut api_url = api_url.to_string();
+                let _a = "/";
+
+                api_url.push_str(&client_id);
+                api_url.push_str(&_a);
+                api_url.push_str(&rate_category_id);
+                api_url.push_str(&_a);
+                api_url.push_str(&buy_currency);
+                api_url.push_str(&_a);
+                api_url.push_str(&sell_currency);
+                api_url.push_str(&_a);
+                api_url.push_str(&_tenor.to_string());
+
+                let _result = corporate_financial_markets::rate_quotes::rate_quotes::enquire(
+                    access_token,
+                    api_url.to_string(),
+                )
+                .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn validate_quotes(
+        &self,
+        account_details: QuotesValidationInputDetails,
+    ) -> std::result::Result<RateQuotesResponseData, String> {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let client_id: String = account_details.get_client_id();
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.rate_quotes_batch_url;
+                let mut api_url = api_url.to_string();
+
+                api_url.push_str(&client_id);
+
+                let _result = corporate_financial_markets::rate_quotes::rate_quotes::enquire(
                     access_token,
                     api_url.to_string(),
                 )
