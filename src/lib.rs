@@ -12,6 +12,9 @@ pub mod models {
             pub mod subscriptions;
         }
     }
+    pub mod reporting {
+        pub mod reporting;
+    }
     pub mod authorization {
         pub mod auth_token;
     }
@@ -39,6 +42,9 @@ pub mod notifications_and_subscriptions {
         pub mod subscriptions_retrieve_by_notification_type;
     }
 }
+pub mod reporting {
+    pub mod reporting;
+}
 
 use base64::{
     alphabet,
@@ -61,6 +67,9 @@ use models::{
         NotificationSubscriptionRetrieveAllResponseData,
         NotificationSubscriptionRetrieveByNotificationTypeInputDetails,
         NotificationSubscriptionRetrieveByNotificationTypeResponseData,
+    },
+    reporting::reporting::{
+        DownloadSingleMultipleReportsInputDetails, DownloadSingleMultipleReportsResponseData,
     },
 };
 
@@ -100,6 +109,10 @@ const NOTIFICATION_SUBSCRIPTION_URL_SANDBOX: &str =
 const NOTIFICATION_SUBSCRIPTION_URL_PROD: &str =
     "https://api.standardchartered.com/openapi/subscriptions/v2/";
 
+const REPORTING_URL_SANDBOX: &str =
+    "https://api.standardchartered.com/openapi/reporting/v2/content/";
+const REPORTING_URL_PROD: &str = "https://api.standardchartered.com/openapi/reporting/v2/content/";
+
 #[derive(Debug)]
 pub struct ScbGateway {
     grant_type: String,
@@ -112,6 +125,7 @@ pub struct ScbGateway {
     rate_quotes_by_currency_pair_url: String,
     quotes_validation_url: String,
     notification_subscription_url: String,
+    reporting_url: String,
 }
 
 impl ScbGateway {
@@ -184,6 +198,12 @@ impl ScbGateway {
             NOTIFICATION_SUBSCRIPTION_URL_SANDBOX.to_string()
         };
 
+        let reporting_url = if _env.eq_ignore_ascii_case(&String::from("prod")) {
+            REPORTING_URL_PROD.to_string()
+        } else {
+            REPORTING_URL_SANDBOX.to_string()
+        };
+
         Ok(Self {
             grant_type,
             consumer_key,
@@ -195,6 +215,7 @@ impl ScbGateway {
             rate_quotes_by_currency_pair_url,
             quotes_validation_url,
             notification_subscription_url,
+            reporting_url,
         })
     }
 
@@ -621,6 +642,53 @@ impl ScbGateway {
                         api_url.to_string(),
                     )
                     .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn download_single_multiple_reports(
+        &self,
+        account_details: DownloadSingleMultipleReportsInputDetails,
+    ) -> std::result::Result<DownloadSingleMultipleReportsResponseData, String> {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let _product: String = account_details.get_product();
+                let _type: String = account_details.get_type();
+                let report_name: String = account_details.get_report_name();
+                let as_of_date: String = account_details.get_as_of_date();
+                let fetch_report_type: String = account_details.get_fetch_report_type();
+                let _list = String::from("list");
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.reporting_url;
+                let mut api_url = api_url.to_string();
+                let _a = "/";
+                let _b = "?fetchReportType=";
+
+                api_url.push_str(&_product);
+                api_url.push_str(&_a);
+                api_url.push_str(&_type);
+                api_url.push_str(&_a);
+                api_url.push_str(&report_name);
+                api_url.push_str(&_a);
+                api_url.push_str(&as_of_date);
+                api_url.push_str(&_a);
+                api_url.push_str(&_list);
+                api_url.push_str(&_b);
+                api_url.push_str(&fetch_report_type);
+
+                let _result =
+                    reporting::reporting::download(access_token, api_url.to_string()).await;
 
                 return _result;
             }

@@ -164,7 +164,7 @@ impl AsOfDataDetails {
         {
             // _type is valid
         } else {
-            return Err(String::from("type has invalid length"));
+            return Err(String::from("type has invalid value"));
         }
 
         Ok(Self { _date, _type })

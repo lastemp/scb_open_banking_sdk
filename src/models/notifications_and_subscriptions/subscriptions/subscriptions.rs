@@ -58,7 +58,7 @@ impl NotificationSubscriptionCreateUpdateInputDetails {
         {
             // notification_type is valid
         } else {
-            return Err(String::from("notification type has invalid length"));
+            return Err(String::from("notification type has invalid value"));
         }
 
         Ok(Self { notification_type })

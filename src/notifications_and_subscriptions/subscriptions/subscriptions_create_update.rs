@@ -11,7 +11,7 @@ pub async fn create_update(
 ) -> std::result::Result<NotificationSubscriptionCreateUpdateResponseData, String> {
     let client = reqwest::Client::new();
 
-    let res = client.get(api_url).headers(build_headers()).send().await;
+    let res = client.post(api_url).headers(build_headers()).send().await;
 
     match res {
         Err(_err) => {
