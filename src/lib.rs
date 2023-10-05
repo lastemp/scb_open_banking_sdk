@@ -70,6 +70,11 @@ const RATE_QUOTES_BY_CURRENCY_PAIR_URL_SANDBOX: &str =
 const RATE_QUOTES_BY_CURRENCY_PAIR_URL_PROD: &str =
     "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/get-single-quote/";
 
+const QUOTES_VALIDATION_URL_SANDBOX: &str =
+    "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/validate-quotes/";
+const QUOTES_VALIDATION_URL_PROD: &str =
+    "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/validate-quotes/";
+
 #[derive(Debug)]
 pub struct ScbGateway {
     grant_type: String,
@@ -80,6 +85,7 @@ pub struct ScbGateway {
     account_details_and_balance_url: String,
     rate_quotes_batch_url: String,
     rate_quotes_by_currency_pair_url: String,
+    quotes_validation_url: String,
 }
 
 impl ScbGateway {
@@ -140,6 +146,12 @@ impl ScbGateway {
             RATE_QUOTES_BY_CURRENCY_PAIR_URL_SANDBOX.to_string()
         };
 
+        let quotes_validation_url = if _env.eq_ignore_ascii_case(&String::from("prod")) {
+            QUOTES_VALIDATION_URL_PROD.to_string()
+        } else {
+            QUOTES_VALIDATION_URL_SANDBOX.to_string()
+        };
+
         Ok(Self {
             grant_type,
             consumer_key,
@@ -149,6 +161,7 @@ impl ScbGateway {
             account_details_and_balance_url,
             rate_quotes_batch_url,
             rate_quotes_by_currency_pair_url,
+            quotes_validation_url,
         })
     }
 
@@ -467,7 +480,7 @@ impl ScbGateway {
                 // Handle success case
                 let client_id: String = account_details.get_client_id();
                 let access_token: String = self.parse_auth_token(access_token_result);
-                let api_url = &self.rate_quotes_batch_url;
+                let api_url = &self.quotes_validation_url;
                 let mut api_url = api_url.to_string();
 
                 api_url.push_str(&client_id);
