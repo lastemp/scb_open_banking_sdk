@@ -7,6 +7,11 @@ pub mod models {
             pub mod rate_quotes;
         }
     }
+    pub mod notifications_and_subscriptions {
+        pub mod subscriptions {
+            pub mod subscriptions;
+        }
+    }
     pub mod authorization {
         pub mod auth_token;
     }
@@ -27,6 +32,14 @@ pub mod corporate_financial_markets {
         pub mod rate_quotes;
     }
 }
+pub mod notifications_and_subscriptions {
+    pub mod subscriptions {
+        pub mod subscriptions_create_update;
+        pub mod subscriptions_retrieve_all;
+        pub mod subscriptions_retrieve_by_notification_type;
+    }
+}
+
 use base64::{
     alphabet,
     engine::{self, general_purpose},
@@ -41,6 +54,13 @@ use models::{
     corporate_financial_markets::rate_quotes::rate_quotes::{
         QuotesValidationInputDetails, RateQuotesBatchInputDetails,
         RateQuotesByCurrencyPairInputDetails, RateQuotesResponseData,
+    },
+    notifications_and_subscriptions::subscriptions::subscriptions::{
+        NotificationSubscriptionCreateUpdateInputDetails,
+        NotificationSubscriptionCreateUpdateResponseData,
+        NotificationSubscriptionRetrieveAllResponseData,
+        NotificationSubscriptionRetrieveByNotificationTypeInputDetails,
+        NotificationSubscriptionRetrieveByNotificationTypeResponseData,
     },
 };
 
@@ -75,6 +95,11 @@ const QUOTES_VALIDATION_URL_SANDBOX: &str =
 const QUOTES_VALIDATION_URL_PROD: &str =
     "https://demo-api.fx-scale.standardchartered.com/scale/v1/quotes-service/validate-quotes/";
 
+const NOTIFICATION_SUBSCRIPTION_URL_SANDBOX: &str =
+    "https://api.standardchartered.com/openapi/subscriptions/v2/";
+const NOTIFICATION_SUBSCRIPTION_URL_PROD: &str =
+    "https://api.standardchartered.com/openapi/subscriptions/v2/";
+
 #[derive(Debug)]
 pub struct ScbGateway {
     grant_type: String,
@@ -86,6 +111,7 @@ pub struct ScbGateway {
     rate_quotes_batch_url: String,
     rate_quotes_by_currency_pair_url: String,
     quotes_validation_url: String,
+    notification_subscription_url: String,
 }
 
 impl ScbGateway {
@@ -152,6 +178,12 @@ impl ScbGateway {
             QUOTES_VALIDATION_URL_SANDBOX.to_string()
         };
 
+        let notification_subscription_url = if _env.eq_ignore_ascii_case(&String::from("prod")) {
+            NOTIFICATION_SUBSCRIPTION_URL_PROD.to_string()
+        } else {
+            NOTIFICATION_SUBSCRIPTION_URL_SANDBOX.to_string()
+        };
+
         Ok(Self {
             grant_type,
             consumer_key,
@@ -162,6 +194,7 @@ impl ScbGateway {
             rate_quotes_batch_url,
             rate_quotes_by_currency_pair_url,
             quotes_validation_url,
+            notification_subscription_url,
         })
     }
 
@@ -490,6 +523,104 @@ impl ScbGateway {
                     api_url.to_string(),
                 )
                 .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn notification_subscription_retrieve_all(
+        &self,
+    ) -> std::result::Result<NotificationSubscriptionRetrieveAllResponseData, String> {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.notification_subscription_url;
+
+                let _result =
+                    notifications_and_subscriptions::subscriptions::subscriptions_retrieve_all::retrieve(
+                        access_token,
+                        api_url.to_string(),
+                    )
+                    .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn notification_subscription_retrieve_by_notification_type(
+        &self,
+        account_details: NotificationSubscriptionRetrieveByNotificationTypeInputDetails,
+    ) -> std::result::Result<NotificationSubscriptionRetrieveByNotificationTypeResponseData, String>
+    {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let notification_type: String = account_details.get_notification_type();
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.notification_subscription_url;
+                let mut api_url = api_url.to_string();
+
+                api_url.push_str(&notification_type);
+
+                let _result =
+                    notifications_and_subscriptions::subscriptions::subscriptions_retrieve_by_notification_type::retrieve(
+                        access_token,
+                        api_url.to_string(),
+                    )
+                    .await;
+
+                return _result;
+            }
+            Err(_err) => {
+                // Handle error case
+                return Err(_err.to_string());
+            }
+        }
+    }
+
+    pub async fn subscriptions_create_update(
+        &self,
+        account_details: NotificationSubscriptionCreateUpdateInputDetails,
+    ) -> std::result::Result<NotificationSubscriptionCreateUpdateResponseData, String> {
+        let _output = self.get_auth_token();
+
+        let _result = _output.await;
+
+        match _result {
+            Ok(access_token_result) => {
+                // Handle success case
+                let notification_type: String = account_details.get_notification_type();
+                let access_token: String = self.parse_auth_token(access_token_result);
+                let api_url = &self.notification_subscription_url;
+                let mut api_url = api_url.to_string();
+
+                api_url.push_str(&notification_type);
+
+                let _result =
+                    notifications_and_subscriptions::subscriptions::subscriptions_create_update::create_update(
+                        access_token,
+                        api_url.to_string(),
+                    )
+                    .await;
 
                 return _result;
             }

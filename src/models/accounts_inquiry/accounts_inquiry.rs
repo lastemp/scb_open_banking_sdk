@@ -158,7 +158,7 @@ impl AsOfDataDetails {
         if _type.is_empty() || _type.replace(" ", "").trim().len() == 0 {
             return Err(String::from("type is empty"));
         }
-        // _type has a max length of 20 characters
+        // _type has possible values
         else if _type.eq_ignore_ascii_case(&String::from("current"))
             || _type.eq_ignore_ascii_case(&String::from("historical"))
         {
